@@ -38,7 +38,7 @@ class datasetsHandler:
         if(len(data_files) > 0):
             return data_files        
         else:
-            return 'No csv file found'
+            return []
 
     def read_data(self, file_path, columns = 'all'):
         """
