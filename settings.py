@@ -32,8 +32,8 @@ for schema in schemas:
 #RESOURCE_METHODS = ['GET', 'POST', 'DELETE'] # Uncomment to allow everything
 RESOURCE_METHODS = ['GET']
 
-# Set Item Methods (Allowed values: GET, POST, PUT and DELETE)
-#ITEM_METHODS = ['GET', 'POST', 'PUT', 'DELETE'] # Uncomment to allow everything
+# Set Item Methods (Allowed values: GET, PATCH, PUT and DELETE)
+#ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE'] # Uncomment to allow everything
 ITEM_METHODS = ['GET']
 
 # Set the value in seconds for caching (applicable at GET requests)

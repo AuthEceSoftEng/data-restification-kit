@@ -39,5 +39,5 @@ dH = datasetsHandler('datasets')
 dI = dataImporter.dataImporter(dH)
 
 # Import data (change the url according with your configuration)
-dI.import_data('http://localhost:5000/api/v1/class-metrics')
+dI.import_data('http://localhost:5000/api/v1/')
 ```

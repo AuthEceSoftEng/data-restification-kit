@@ -22,6 +22,9 @@ class dataImporter:
         
         :param url: the endpoint that accepts the data
         """
+        if(not url.endswith('/')):
+            url = url + '/'
+        
         for dataset in self.dH.datasets_to_import:
             if(len(self.dH.get_datasets_files_path(dataset)) > 0):        
                 for data_file in self.dH.get_datasets_files_path(dataset):
@@ -38,7 +41,8 @@ class dataImporter:
                                 modified_key = key.replace(' ', '_')
                                 info[modified_key] = row[key]
                         docs.append(info)
-                    r = requests.post(url, 
+                    print(url + dataset)
+                    r = requests.post(url + dataset,
                                      headers = {
                                          'Content-Type': 'application/json',
                                          'Accept': 'application/json'
