@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import json
 import subprocess
 import psutil
@@ -57,9 +58,14 @@ def getSchemaProperties():
         type  = request.args["type"]
         
         if(len(data[data['label'].str.lower() == type.lower()]) > 0):
-            properties = data[data['label'].str.lower() == type.lower()]["properties"].iloc[0].split(', ')
-            res = json.dumps({"properties": [val.replace('http://schema.org/', '') for val in properties] }, indent=3)
             
+            info = data[data['label'].str.lower() == type.lower()]["properties"].iloc[0]
+            if(isinstance(info, float)):
+                res = json.dumps({"properties": [] }, indent=3)
+            else:
+                properties = info.split(', ')
+                res = json.dumps({"properties": [val.replace('http://schema.org/', '') for val in properties] }, indent=3)
+                
             return Response(res, status = 200, mimetype="application/json")
         else:
             res = json.dumps({"error": "Invalid type"}, indent=3)
