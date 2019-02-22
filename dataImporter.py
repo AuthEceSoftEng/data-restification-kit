@@ -25,35 +25,61 @@ class dataImporter:
         if(not url.endswith('/')):
             url = url + '/'
         
-        for dataset in self.dH.datasets_to_import:
-            if(len(self.dH.get_datasets_files_path(dataset)) > 0):        
-                for data_file in self.dH.get_datasets_files_path(dataset):
-                    print('Adding data from file: ' + str(data_file))
-                    
-                    docs = []
-                    data = self.dH.read_data(data_file)
-                    
-                    print('Number of documents: ' + str(len(data)))
-                    for (i, row) in data.iterrows():
-                        info = {}
-                        for key in row.keys():
-                            if (key not in self.keys_to_exclude):
-                                modified_key = key.replace(' ', '_')
-                                info[modified_key] = row[key]
-                        docs.append(info)
-                    print(url + dataset)
-                    r = requests.post(url + dataset,
-                                     headers = {
-                                         'Content-Type': 'application/json',
-                                         'Accept': 'application/json'
-                                    }, data = json.dumps(docs))
-                    
-                    response = r.json()
-                    if(response['_status'] == 'OK'):
-                        print('SUCCESSFUL IMPORT')
-                    else:
-                        print('ERROR OCCURRED')
-                        print(response['_error'])
-                        for (i,item) in enumerate(response["_items"]):
-                            if(item['_status'] != 'OK'):
-                                print('Item ' + str(i) + ': ', item)  
+        data = self.dH.read_data(columns = 'all', separator = ',')
+        
+        docs = []
+        for (i, row) in data.iterrows():
+            info = {}
+            for key in row.keys():
+                if (key not in self.keys_to_exclude):
+                    modified_key = key.replace(' ', '_')
+                    info[modified_key] = row[key]
+            docs.append(info)
+        
+        r = requests.post(url + self.dH.dataset_name,
+                          headers = {
+                             'Content-Type': 'application/json',
+                             'Accept': 'application/json'
+                        }, data = json.dumps(docs))
+                
+        response = r.json()
+        if(response['_status'] == 'OK'):
+            print('SUCCESSFUL IMPORT')
+        else:
+            print('ERROR OCCURRED')
+            print(response['_error'])
+            for (i,item) in enumerate(response["_items"]):
+                if(item['_status'] != 'OK'):
+                    print('Item ' + str(i) + ': ', item)
+        
+#         if(len(self.dH.data_file_to_import(dataset)) > 0):        
+#             for data_file in self.dH.get_datasets_files_path(dataset):
+#                 print('Adding data from file: ' + str(data_file))
+#                 
+#                 docs = []
+#                 data = self.dH.read_data(data_file)
+#                 
+#                 print('Number of documents: ' + str(len(data)))
+#                 for (i, row) in data.iterrows():
+#                     info = {}
+#                     for key in row.keys():
+#                         if (key not in self.keys_to_exclude):
+#                             modified_key = key.replace(' ', '_')
+#                             info[modified_key] = row[key]
+#                     docs.append(info)
+#                 print(url + dataset)
+#                 r = requests.post(url + dataset,
+#                                  headers = {
+#                                      'Content-Type': 'application/json',
+#                                      'Accept': 'application/json'
+#                                 }, data = json.dumps(docs))
+#                 
+#                 response = r.json()
+#                 if(response['_status'] == 'OK'):
+#                     print('SUCCESSFUL IMPORT')
+#                 else:
+#                     print('ERROR OCCURRED')
+#                     print(response['_error'])
+#                     for (i,item) in enumerate(response["_items"]):
+#                         if(item['_status'] != 'OK'):
+#                             print('Item ' + str(i) + ': ', item)  

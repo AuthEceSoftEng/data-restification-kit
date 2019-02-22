@@ -2,45 +2,23 @@ import os
 import json
 import numpy as np
 import pandas as pd
-from builtins import str
 
 class datasetsHandler:
     """
     This class implements a data handler responsible for manipulating the datasets which are to be imported.
     """
-    def __init__(self, datasets_folder):
+    def __init__(self, dataset_name, file_path):
         """
         Initializes this datasets handler. The initialization requires the folder which contains the datasets.
         
-        :param datasets_folder: the path of the datasets folder
+        :param dataset_name: the name of the dataset
+        :param file_path: the absolute path of the data file
         """
-        self.datasets_folder = datasets_folder
-        
-        # Get the different datasets which are to be imported. Each folder corresponds to a different dataset
-        self.datasets_to_import = [name for name in os.listdir(datasets_folder) if os.path.isdir(os.path.join(datasets_folder, name))]
-    
-    def get_datasets_files_path(self, dataset, endings = ['.csv']):
-        """
-        Identifies the files that contain the raw data.
-        
-        :param dataset: the path of the datasets folder
-        :param endings: the supported types of data files (by default .csv files are supported)
-        :returns A list containing the paths of raw data files
-        """
-        
-        data_files = []
-        for root, dirs, files in os.walk(os.path.join(self.datasets_folder, dataset), topdown=False):
-            for name in files:
-                for ending in endings:
-                    if(name.endswith(ending)):
-                        data_files.append('/'.join([root.replace('\\', '/'), name]))
-                    
-        if(len(data_files) > 0):
-            return data_files        
-        else:
-            return []
+        self.dataset_name = dataset_name
+        self.data_file_to_import = file_path
+        self.supported_types = ['.csv']
 
-    def read_data(self, file_path, columns = 'all'):
+    def read_data(self, columns = 'all', separator = ','):
         """
         Identifies the files that contain the raw data.
         
@@ -49,27 +27,36 @@ class datasetsHandler:
         :returns A list containing the paths of raw data files
         """
         
+        data = pd.read_csv(self.data_file_to_import, sep = separator)
         if(columns == 'all'):
-            return pd.read_csv(file_path)
+            return data
         else:
-            data = pd.read_csv(file_path)
             return data[columns]
-    
-    def data_validator(self, df):
+        
+    def validate(self, columns, separator):
         """
         Validates a certain dataset file
         
         :param df: the data frame that contains the data
         :returns True of no validation error exists. In case of error, it returns the errors 
         """
-        if(df.isnull().values.any()):
-            missing_values_columns = [key for key in df.keys() if df[key].isnull().values.any()]
-            
-            return 'Validation Error - Missing data in columns: ' + str(missing_values_columns)
-        else:
-            return True
-
-    def schema_extractor(self, df, write_to_file = False):
+        
+        for extention in self.supported_types:
+            if(self.data_file_to_import.endswith(extention)):
+                df = self.read_data(columns, separator)
+                
+                # Check if there are missing values in data
+                if(df.isnull().values.any()):
+                    missing_values_columns = [key for key in df.keys() if df[key].isnull().values.any()]
+                    
+                    return {"error": "Validation Error - Missing data in column(s): " + ", ".join(missing_values_columns)}
+                else:
+                    self.schema = self.schema_extractor(df)
+                    return True
+        
+        return {"error": "Validation Error - Non supported type"}
+        
+    def schema_extractor(self, df):
         """
         Extracts the data-schema of a given dataset 
         
@@ -85,9 +72,5 @@ class datasetsHandler:
                 schema[modified_key]["type"] = 'string'
             else:
                 schema[modified_key]["type"] = 'number'
-        
-        if(write_to_file != False):
-            with open(write_to_file, 'w') as schema_file:
-                json.dump(schema, schema_file, indent=3, sort_keys=True)
         
         return schema
