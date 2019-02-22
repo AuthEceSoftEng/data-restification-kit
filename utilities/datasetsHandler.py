@@ -7,7 +7,7 @@ class datasetsHandler:
     """
     This class implements a data handler responsible for manipulating the datasets which are to be imported.
     """
-    def __init__(self, dataset_name, file_path):
+    def __init__(self, dataset_name, file):
         """
         Initializes this datasets handler. The initialization requires the folder which contains the datasets.
         
@@ -15,7 +15,8 @@ class datasetsHandler:
         :param file_path: the absolute path of the data file
         """
         self.dataset_name = dataset_name
-        self.data_file_to_import = file_path
+        self.data_file_to_import = file
+        self.data_filename = file.filename
         self.supported_types = ['.csv']
 
     def read_data(self, columns = 'all', separator = ','):
@@ -33,7 +34,7 @@ class datasetsHandler:
         else:
             return data[columns]
         
-    def validate(self, columns, separator):
+    def validate(self, columns = 'all', separator = ','):
         """
         Validates a certain dataset file
         
@@ -42,7 +43,7 @@ class datasetsHandler:
         """
         
         for extention in self.supported_types:
-            if(self.data_file_to_import.endswith(extention)):
+            if(self.data_filename.endswith(extention)):
                 df = self.read_data(columns, separator)
                 
                 # Check if there are missing values in data

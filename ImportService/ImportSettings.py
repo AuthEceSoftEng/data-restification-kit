@@ -1,8 +1,9 @@
 import os
 import json
+from properties import mongo_uri
 
 # Set the MONGODB URI
-MONGO_URI = 'mongodb://localhost:27017/datasets'
+MONGO_URI = mongo_uri
 
 # Construct the Domain
 DOMAIN = {}

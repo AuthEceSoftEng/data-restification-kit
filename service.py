@@ -5,6 +5,8 @@ import subprocess
 import psutil
 import os
 from flask import Flask, Response, request
+from utilities.datasetsHandler import datasetsHandler
+from utilities.dataImporter import dataImporter
 
 def kill(proc_pid):
     process = psutil.Process(proc_pid)
@@ -19,7 +21,7 @@ def start():
     
     global proc
     try:
-        proc = subprocess.Popen(['C:\Python34\python.exe', 'ImportService.py'], shell=True)
+        proc = subprocess.Popen(['C:\Python34\python.exe', 'ImportService' + os.sep + 'ImportService.py'], shell=True)
         return Response(json.dumps({"message": "Service started successfully"}, indent=3), mimetype="application/json")
     except Exception as e:
         return Response(json.dumps({"message": "Service could not start", "exception": e}, indent=3), mimetype="application/json")
@@ -51,6 +53,29 @@ def getSchemaTypes():
     
     return Response(json.dumps({"types": [val for val in data['label'].values] }, indent=3), mimetype="application/json")
 
+@app.route('/api/registerDataset', methods = ["POST"])
+def validateDataset():
+    
+    print(request.files)
+    dataset_file = request.files["dataFile"]
+    print(type(request.files["dataFile"]))
+    print(dataset_file.filename)
+    #r = pd.read_csv(dataset_file)
+    dH = datasetsHandler('michalis32', dataset_file)
+    
+    val = dH.validate('all', ',')
+    if(val == True):
+        info = {"schema": dH.schema}
+        with open('schemas/' + dH.dataset_name + '.schema', 'w') as schema_file:
+            json.dump(dH.schema, schema_file, indent=3, sort_keys=True)
+        res = json.dumps(info, indent=3)
+        
+        return Response(res, status = 200, mimetype="application/json")
+    else:
+        res = json.dumps(val, indent=3)
+        
+        return Response(res, status = 400, mimetype="application/json")
+    
 @app.route('/api/getSchemaProperties')
 def getSchemaProperties():
     

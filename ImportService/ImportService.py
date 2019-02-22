@@ -1,7 +1,5 @@
 import os
 import subprocess
-import psutil
-import json
 from eve import Eve
 from eve.auth import BasicAuth
 from flask import Response
