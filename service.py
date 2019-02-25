@@ -5,6 +5,7 @@ import time
 import subprocess
 import psutil
 import os
+import requests
 from flask import Flask, Response, request
 from flask_cors import CORS, cross_origin
 from utilities.datasetsHandler import datasetsHandler
@@ -32,7 +33,12 @@ def startImporter():
         try:
             proc = subprocess.Popen([python_exec_path, 'ImportService' + os.sep + 'ImportService.py'])
             processes_info["importer"] = proc.pid
-             
+            for seconds in range(0, 10):
+                try:
+                    requests.get('http://127.0.0.1:5050/api/v1')
+                    break
+                except Exception as e:
+                    time.sleep(1) 
             return True
         except Exception as e:
             return False
@@ -120,7 +126,6 @@ def importDataset():
         if(("datasetName" in request.args) and ("separator" in request.args) and ("dataFile" in request.files)):
             dataset_file = request.files["dataFile"]
             if(startImporter()):
-                time.sleep(2)
                 dH = datasetsHandler(request.args["datasetName"], dataset_file)
                 dI = dataImporter(dH, request.args["separator"])
                 response = dI.import_data('http://127.0.0.1:5050/api/v1/', request.args["separator"])
