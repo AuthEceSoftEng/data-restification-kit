@@ -1,14 +1,19 @@
 import pandas as pd
 import numpy as np
 import json
+import time
 import subprocess
 import psutil
 import os
 from flask import Flask, Response, request
+from flask_cors import CORS, cross_origin
 from utilities.datasetsHandler import datasetsHandler
 from utilities.dataImporter import dataImporter
+from properties import python_exec_path
 
 app = Flask(__name__)
+CORS(app, support_credentials = True)
+
 global processes_info
 processes_info = {}
 processes_info["importer"] = None
@@ -25,7 +30,7 @@ def startImporter():
      
     if(processes_info["importer"] is None):
         try:
-            proc = subprocess.Popen(['C:\Python34\python.exe', 'ImportService' + os.sep + 'ImportService.py'], shell=True)
+            proc = subprocess.Popen([python_exec_path, 'ImportService' + os.sep + 'ImportService.py'])
             processes_info["importer"] = proc.pid
              
             return True
@@ -46,7 +51,7 @@ def startRetriever():
      
     if(processes_info["retriever"] is None):
         try:
-            proc = subprocess.Popen(['C:\Python34\python.exe', 'RetrieveService' + os.sep + 'RetrieveService.py'], shell=True)
+            proc = subprocess.Popen([python_exec_path, 'RetrieveService' + os.sep + 'RetrieveService.py'])
             processes_info["retriever"] = proc.pid
              
             return True
@@ -62,30 +67,6 @@ def stopRetriever():
     processes_info["retriever"] = None
  
     return True
-
-# @app.route('/api/startImporter')
-# def startImporter():
-#     
-#     try:
-#         proc = subprocess.Popen(['C:\Python34\python.exe', 'ImportService' + os.sep + 'ImportService.py'], shell=True)
-#         processes_info["importer"] = proc.pid
-#         
-#         return Response(json.dumps({"message": "Service started successfully"}, indent=3), mimetype="application/json")
-#     except Exception as e:
-#         return Response(json.dumps({"message": "Service could not start", "exception": e}, indent=3), mimetype="application/json")
-#     try:
-#         proc.wait(timeout=1000)
-#     except subprocess.TimeoutExpired:
-#         kill(proc.pid)
-#         return Response(json.dumps({"message": "Service Stopped"}, indent=3), mimetype="application/json")
-
-# @app.route('/api/stopImporter')
-# def stopImporter():
-#     kill(processes_info["importer"])
-#     processes_info["importer"] = None
-# 
-#     return Response(json.dumps({"message": "Service Stopped"}, indent=3), mimetype="application/json")
-
 
 @app.route('/api/check')
 def check():
@@ -139,9 +120,10 @@ def importDataset():
         if(("datasetName" in request.args) and ("separator" in request.args) and ("dataFile" in request.files)):
             dataset_file = request.files["dataFile"]
             if(startImporter()):
+                time.sleep(2)
                 dH = datasetsHandler(request.args["datasetName"], dataset_file)
                 dI = dataImporter(dH, request.args["separator"])
-                response = dI.import_data('http://localhost:5050/api/v1/', request.args["separator"])
+                response = dI.import_data('http://127.0.0.1:5050/api/v1/', request.args["separator"])
                 if('error' in response):
                     stopImporter()
                     res = json.dumps(response, indent=3)
@@ -149,7 +131,7 @@ def importDataset():
                     return Response(res, status = 400, mimetype="application/json")
                 else:
                     if(stopImporter()):
-                        res = json.dumps({"error": "Import successful"}, indent=3)
+                        res = json.dumps({"message": "Import successful"}, indent=3)
                         processes_info["importer_available"] = True
                         return Response(res, status = 201, mimetype="application/json")
                     else:
