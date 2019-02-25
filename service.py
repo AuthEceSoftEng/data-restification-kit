@@ -140,16 +140,22 @@ def importDataset():
             dataset_file = request.files["dataFile"]
             if(startImporter()):
                 dH = datasetsHandler(request.args["datasetName"], dataset_file)
-                dI = dataImporter(dH)
-                dI.import_data('http://localhost:5050/api/v1/')
-                if(stopImporter()):
-                    res = json.dumps({"error": "Import successful"}, indent=3)
-                    processes_info["importer_available"] = True
-                    return Response(res, status = 201, mimetype="application/json")
-                else:
-                    res = json.dumps({"error": "Importer stopping procedure failed"}, indent=3)
+                dI = dataImporter(dH, request.args["separator"])
+                response = dI.import_data('http://localhost:5050/api/v1/', request.args["separator"])
+                if('error' in response):
+                    stopImporter()
+                    res = json.dumps(response, indent=3)
                     processes_info["importer_available"] = True
                     return Response(res, status = 400, mimetype="application/json")
+                else:
+                    if(stopImporter()):
+                        res = json.dumps({"error": "Import successful"}, indent=3)
+                        processes_info["importer_available"] = True
+                        return Response(res, status = 201, mimetype="application/json")
+                    else:
+                        res = json.dumps({"error": "Importer stopping procedure failed"}, indent=3)
+                        processes_info["importer_available"] = True
+                        return Response(res, status = 400, mimetype="application/json")
             else:
                 res = json.dumps({"error": "Importer starting procedure failed"}, indent=3)
                 processes_info["importer_available"] = True
