@@ -143,6 +143,10 @@ def importDataset():
                 else:
                     if(stopImporter()):
                         res = json.dumps({"message": "Import successful", "data_sample": response["data_sample"]}, indent=3)
+                        
+                        stopRetriever()
+                        startRetriever()
+                        
                         processes_info["importer_available"] = True
                         return Response(res, status = 201, mimetype="application/json")
                     else:
@@ -203,5 +207,8 @@ def getSchemaProperties():
 if __name__ == '__main__':
     # Load schema types
     data = pd.read_csv(os.path.join('utilities', 'schema_data', 'schema-types.csv'))
+    
+    # Start the retriever 
+    startRetriever()
     
     app.run(host=main_service_host, port=main_service_port)

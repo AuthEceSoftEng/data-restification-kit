@@ -1,6 +1,9 @@
 import os
 import json
-from properties import retrieve_service_port, retrieve_service_host
+from properties import retrieve_service_port, retrieve_service_host, mongo_uri
+
+# Set the MONGODB URI
+MONGO_URI = mongo_uri
 
 # Set the REST service port
 SERVICE_PORT = retrieve_service_port
