@@ -46,10 +46,16 @@ class dataImporter:
                 
         response = r.json()
         if(response['_status'] == 'OK'):
-            return {"message": "SUCCESSFUL IMPORT"}
+            if(len(docs) > 5):
+                return {"message": "SUCCESSFUL IMPORT", "data_sample": docs[0:5]}
+            else:
+                return {"message": "SUCCESSFUL IMPORT", "data_sample": docs[0:len(docs)]}
         else:
             res = {"error": "Data import failed"}
-            for (i,item) in enumerate(response["_items"]):
-                if(item['_status'] != 'OK'):
-                    res["Item_" + str(i)] = item
+            if("_items" in response):
+                for (i,item) in enumerate(response["_items"]):
+                    if(item['_status'] != 'OK'):
+                        res["Item_" + str(i)] = item
+            else:
+                res["message"] = "The provided file contains no data"
             return res

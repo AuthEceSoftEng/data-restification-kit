@@ -59,11 +59,16 @@ def startRetriever():
         try:
             proc = subprocess.Popen([python_exec_path, 'RetrieveService' + os.sep + 'RetrieveService.py'])
             processes_info["retriever"] = proc.pid
-             
+            for seconds in range(0, 10):
+                try:
+                    requests.get('http://127.0.0.1:5000/api/v1')
+                    break
+                except Exception as e:
+                    time.sleep(1) 
             return True
         except Exception as e:
             return False
-    
+
     return True
 
 def stopRetriever():
@@ -136,7 +141,7 @@ def importDataset():
                     return Response(res, status = 400, mimetype="application/json")
                 else:
                     if(stopImporter()):
-                        res = json.dumps({"message": "Import successful"}, indent=3)
+                        res = json.dumps({"message": "Import successful", "data_sample": response["data_sample"]}, indent=3)
                         processes_info["importer_available"] = True
                         return Response(res, status = 201, mimetype="application/json")
                     else:

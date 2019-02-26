@@ -106,3 +106,4 @@ venv.bak/
 # Eclipse generated files
 .pydevproject
 .project
+schemas/*.schema
