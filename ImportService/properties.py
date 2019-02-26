@@ -17,9 +17,5 @@ import_service_username = ''
 # Set import service password
 import_service_password = ''
 
-#####################################
-#        General Properties         #
-#####################################
-
 # Set the MONGODB URI
 mongo_uri = 'mongodb://localhost:27017/datasets'

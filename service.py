@@ -10,7 +10,8 @@ from flask import Flask, Response, request
 from flask_cors import CORS, cross_origin
 from utilities.datasetsHandler import datasetsHandler
 from utilities.dataImporter import dataImporter
-from properties import python_exec_path
+from properties import python_exec_path, retrieve_service_access_url, import_service_access_url, \
+                       main_service_host, main_service_port
 
 app = Flask(__name__)
 CORS(app, support_credentials = True)
@@ -35,7 +36,7 @@ def startImporter():
             processes_info["importer"] = proc.pid
             for seconds in range(0, 10):
                 try:
-                    requests.get('http://127.0.0.1:5050/api/v1')
+                    requests.get(import_service_access_url)
                     break
                 except Exception as e:
                     time.sleep(1) 
@@ -61,7 +62,7 @@ def startRetriever():
             processes_info["retriever"] = proc.pid
             for seconds in range(0, 10):
                 try:
-                    requests.get('http://127.0.0.1:5000/api/v1')
+                    requests.get(retrieve_service_access_url)
                     break
                 except Exception as e:
                     time.sleep(1) 
@@ -133,7 +134,7 @@ def importDataset():
             if(startImporter()):
                 dH = datasetsHandler(request.args["datasetName"], dataset_file)
                 dI = dataImporter(dH, request.args["separator"])
-                response = dI.import_data('http://127.0.0.1:5050/api/v1/', request.args["separator"])
+                response = dI.import_data(import_service_access_url, request.args["separator"])
                 if('error' in response):
                     stopImporter()
                     res = json.dumps(response, indent=3)
@@ -203,4 +204,4 @@ if __name__ == '__main__':
     # Load schema types
     data = pd.read_csv(os.path.join('utilities', 'schema_data', 'schema-types.csv'))
     
-    app.run(host='127.0.0.1', port=5060)
+    app.run(host=main_service_host, port=main_service_port)
