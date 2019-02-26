@@ -38,24 +38,26 @@ class dataImporter:
                     info[modified_key] = int(row[key]) if isinstance(row[key], np.int64) else row[key]
             docs.append(info)
         
-        r = requests.post(url + self.dH.dataset_name,
-                          headers = {
-                             'Content-Type': 'application/json',
-                             'Accept': 'application/json'
-                        }, data = json.dumps(docs))
-                
-        response = r.json()
-        if(response['_status'] == 'OK'):
-            if(len(docs) > 5):
-                return {"message": "SUCCESSFUL IMPORT", "data_sample": docs[0:5]}
+        if(len(docs) > 0):    
+            r = requests.post(url + self.dH.dataset_name,
+                              headers = {
+                                 'Content-Type': 'application/json',
+                                 'Accept': 'application/json'
+                            }, data = json.dumps(docs))
+                    
+            response = r.json()
+            if(response['_status'] == 'OK'):
+                if(len(docs) > 5):
+                    return {"message": "SUCCESSFUL IMPORT", "data_sample": docs[0:5]}
+                else:
+                    return {"message": "SUCCESSFUL IMPORT", "data_sample": docs[0:len(docs)]}
             else:
-                return {"message": "SUCCESSFUL IMPORT", "data_sample": docs[0:len(docs)]}
+                res = {"error": "Data import failed"}
+                if("_items" in response):
+                    for (i,item) in enumerate(response["_items"]):
+                        if(item['_status'] != 'OK'):
+                            res["Item_" + str(i)] = item
         else:
-            res = {"error": "Data import failed"}
-            if("_items" in response):
-                for (i,item) in enumerate(response["_items"]):
-                    if(item['_status'] != 'OK'):
-                        res["Item_" + str(i)] = item
-            else:
-                res["message"] = "The provided file contains no data"
-            return res
+            res = {"error": "Data import failed. The provided file contains no data"}
+        
+        return res
